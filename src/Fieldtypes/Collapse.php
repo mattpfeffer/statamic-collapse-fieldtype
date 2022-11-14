@@ -2,6 +2,7 @@
 
 namespace Goldnead\CollapseFieldtype\Fieldtypes;
 
+use Statamic\Support\Arr;
 use Statamic\Fields\Fields;
 use Statamic\Fields\Fieldtype;
 
@@ -49,14 +50,22 @@ class Collapse extends Fieldtype
         return new Fields($this->config('fields'), $this->field()->parent(), $this->field());
     }
 
+    /**
+     * Preload default/existing data on the publish page.
+     *
+     * @return array|mixed
+     */
     public function preload()
     {
-        $defaults = [
-            "defaults" => $this->fields()->all()->map(function ($field) {
-                return $field->fieldtype()->preProcess($field->defaultValue());
-            })->all()
-        ];
-        return $defaults;
+        $data = Arr::removeNullValues($this->fields()->all()->map(function ($field) {
+            return $field->fieldtype()->preProcess($this->field->value());
+        })->all());
+
+        $data['defaults'] = Arr::removeNullValues($this->fields()->all()->map(function ($field) {
+            return $field->fieldtype()->preProcess($field->defaultValue());
+        })->all());
+
+        return $data;
     }
 
     /**
